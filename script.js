@@ -22,45 +22,77 @@ GM_webRequest([
 
 if(window.location.href.includes('episode') || window.location.href.includes('epek') ) {} else return
 
+let tabledata = document.querySelectorAll('.table-responsive tr')
+
+//console.log(tabledata)
+//console.log(tabledata[2])
 
 let palyersID = await getIDS()
 
 let list = document.getElementById('player-block')
 
-list.innerHTML = '<h1> ODCINKI ZE SKRYPTU</h1> <div id="odcinki_skrypt" > </div>'
 
-getPlayerLInk(palyersID[0][2])
+//console.log(newTablebody.innerHTML)
 
-for (let i = 0; i < 7; i++) {
-    if(palyersID[i][0] == 'sibnet') continue
-    if(palyersID[i][0] == 'Vk') continue
-    if(palyersID[i][0] == 'Streamsb') continue
-    if(palyersID[i][0] == 'Myvitv') continue
-    if(palyersID[i][0] == 'Hqq') continue
-    if(palyersID[i][0] == 'Yourupload') continue
-    if(palyersID[i][0] == 'Dood') continue
+//getPlayerLInk(palyersID[0][2])
 
-    getPlayerLInk(palyersID[i][2])
-    await sleep(500)
+for (let el of document.querySelectorAll('.fansub-ad-info')) el.innerHTML = '';
+for (let el of document.querySelectorAll('.error')) el.innerHTML = '';
+
+for (let i = 0; i < palyersID.length; i++) {
+
+    getPlayerLInk(palyersID[i][2],i)
+    await sleep(2500)
 }
 
-async function getPlayerLInk(id) {
+async function getPlayerLInk(id,i) {
 
     console.log(id)
 
     let playerlink = ''
 
-    let sleeptime = await fetchLink(`xhr/${id}/player_load?auth=${_Storage.basic}`) * 1000
+    let sleeptime = await fetchLink(`xhr/${id}/player_load?auth=${_Storage.basic}`) * 1000 
 
+    console.log(sleeptime)
     await sleep(sleeptime)
 
     let playerdata = await fetchLink(`xhr/${id}/player_show?auth=${_Storage.basic}`)
 
     playerlink = playerdata.split('\n')
 
-    let odcinki = document.getElementById('odcinki_skrypt')
+    //console.log(player_data[1]) //LINK
+    let link = playerlink[1].split(' ')
 
-    odcinki.innerHTML = `${odcinki.innerHTML} ${playerlink[1]}`
+    link.forEach(element => {
+        if(element.includes('src')) {
+            link = element
+        }
+    });
+
+    link = await link.replace('src="',"")
+    link = await link.replace('"',"")
+
+    playerlink[3] = playerlink[3].replace('<input type="hidden" name="json" value="','')
+    playerlink[3] = playerlink[3].replace('"','')
+    playerlink[3] = playerlink[3].replace(/&quot;/g,'"')
+    playerlink[3] = playerlink[3].replace(/&lt;/g,'<')
+    playerlink[3] = playerlink[3].replace(/&gt;/g,'>')
+    playerlink[3] = playerlink[3].replace(' />',"")
+
+    playerlink[3] = JSON.parse(playerlink[3])    
+    
+    console.log(link)
+    // console.log(playerlink[3])
+
+    console.log(tabledata[i+1].querySelector('.ep-buttons').innerHTML )
+    tabledata[i+1].querySelector('.ep-buttons').innerHTML = `${tabledata[i+1].querySelector('.ep-buttons').innerHTML}<a href="${link}" target="blank" class="button">OTWÓRZ LINK </a>`
+
+    //newTablebody.innerHTML = `${newTablebody.innerHTML} ${tabledata[i+1].outerHTML}`
+
+
+    // let odcinki = document.getElementById('odcinki_skrypt')
+
+    // odcinki.innerHTML = `${odcinki.innerHTML} ${playerlink[1]}`
 
 }
 
@@ -86,6 +118,7 @@ async function getIDS(){
         data.push([hosting,res,player])
     }
 
+    console.log(data)
    return data
 }
 
